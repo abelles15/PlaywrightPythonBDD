@@ -1,0 +1,8 @@
+.git/
+.pytest_cache/
+.venv/
+__pycache__/
+reports/
+test/__pycache__
+pages/__pycache__
+How_to_run.txt
