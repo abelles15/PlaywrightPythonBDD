@@ -6,16 +6,22 @@ class BasePage: #Methods (functions) and attributes (data).
     def __init__(self, page):
         self.page = page
 
-    #This method clicks an element after waiting for it to be visible:
-    def click(self, selector):
-        locator = self.page.locator(selector)
-        locator.wait_for(state="visible")
-        locator.wait_for(state="attached")
-        locator.click()
+    #This method clicks an element. First find the element, use the first one if there are several, wait until it becomes visible, click (forced or not) and if it fails → clear and understandable error:
+    def click(self, selector: str, *, timeout: int = 5000, force: bool = False):
+        locator = self.page.locator(selector).first
+        try:
+            locator.wait_for(state="visible", timeout=timeout)
+            locator.click(force=force, timeout=timeout)
+        except Exception as e:
+            raise AssertionError(
+                f"❌ Could not click element '{selector}'"
+            ) from e
 
     #This method types text into a field:
     def fill(self, selector, value):
-        self.page.locator(selector).fill(value)
+        locator = self.page.locator(selector).first
+        locator.wait_for(state="visible")
+        locator.fill(value)
 
     #This method returns True if the element is visible, otherwise False:
     def is_visible(self, selector) -> bool:
@@ -25,6 +31,6 @@ class BasePage: #Methods (functions) and attributes (data).
     def count(self, selector) -> int:
         return self.page.locator(selector).count()
 
-    #This returns the text of an element (returns a string):
+    #This method returns the text of an element (returns a string):
     def text(self, selector) -> str:
         return self.page.locator(selector).inner_text()

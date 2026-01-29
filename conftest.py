@@ -240,6 +240,11 @@ def error_login_message(login_page, message): #login_page is the LoginPage insta
     error_text = login_page.page.text_content(LoginPage.ERROR_MSG)
     assert message in error_text, f"Expected '{message}' in '{error_text}'"
 
+@then("tap on Error button of error message")
+def error_button_login(login_page):
+    login_page.login_error_button()
+    assert not login_page.page.locator(LoginPage.ERROR_BTN).is_visible()
+
 @then("debe visualizar la lista de productos")
 def see_products(inventory_page):
     assert inventory_page.has_products()

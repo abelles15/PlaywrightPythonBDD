@@ -17,6 +17,7 @@ Feature: Login
     Given the user is on the login page
     When the user logs in with <username> and <password>
     Then an error message <message> is shown
+    And tap on Error button of error message
 
     Examples:
       | username        | password       | message |
