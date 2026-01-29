@@ -194,22 +194,12 @@ def go_to_login(page):
     page.wait_for_load_state("networkidle")
     return LoginPage(page)
 
-@given("el usuario ha iniciado sesión correctamente", target_fixture="inventory_page")
-def logged_user(page):
-    page.goto("https://www.saucedemo.com", wait_until="domcontentloaded")
-    page.wait_for_load_state("networkidle")
-    login = LoginPage(page)
-    login.login("standard_user", "secret_sauce")
-    page.wait_for_url("**/inventory.html")
-    page.wait_for_load_state("networkidle")
-    return ProductsPage(page)
-
 @given("tiene un producto en el carrito", target_fixture="cart_page")
-def product_in_cart(inventory_page):
-    inventory_page.add_first_product_to_cart()
-    inventory_page.page.locator(".shopping_cart_link").click()
-    inventory_page.page.wait_for_url("**/cart.html")
-    cart = CartPage(inventory_page.page)
+def product_in_cart(products_page):
+    products_page.add_first_product_to_cart()
+    products_page.page.locator(".shopping_cart_link").click()
+    products_page.page.wait_for_url("**/cart.html")
+    cart = CartPage(products_page.page)
     assert cart.product_count() == 1
     return cart
 
@@ -219,8 +209,8 @@ def valid_login(login_page, username, password):
     login_page.login(username, password)
 
 @when("agrega un producto al carrito")
-def add_product(inventory_page):
-    inventory_page.add_first_product_to_cart()
+def add_product(products_page):
+    products_page.add_first_product_to_cart()
 
 @when("completa el checkout", target_fixture="checkout_page")
 def complete_checkout(cart_page):
@@ -245,13 +235,13 @@ def error_button_login(login_page):
     login_page.login_error_button()
     assert not login_page.page.locator(LoginPage.ERROR_BTN).is_visible()
 
-@then("debe visualizar la lista de productos")
-def see_products(inventory_page):
-    assert inventory_page.has_products()
+@then("should be able to see the products list")
+def see_products(products_page):
+    assert products_page.has_products()
 
 @then("el carrito debe tener 1 producto")
-def verify_cart(inventory_page):
-    assert inventory_page.cart_badge_count() == 1
+def verify_cart(products_page):
+    assert products_page.cart_badge_count() == 1
 
 @then("debe ver el mensaje de confirmación")
 def checkout_success(checkout_page):
