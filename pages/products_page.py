@@ -6,10 +6,17 @@ class ProductsPage(BasePage): #ProductsPage inherits from BasePage (can use all 
     #CSS selectors for elements on the products page:
     INVENTORY_ITEMS = ".inventory_item" #<div class="inventory_item" data-test="inventory-item"><div class="inventory_item_img"><a href="#" id="item_0_img_link" data-test="item-0-img-link"><img alt="Sauce Labs Bike Light" class="inventory_item_img" src="/static/media/bike-light-1200x1500.37c843b09a7d77409d63.jpg" data-test="inventory-item-sauce-labs-bike-light-img"></a></div><div class="inventory_item_description" data-test="inventory-item-description"><div class="inventory_item_label"><a href="#" id="item_0_title_link" data-test="item-0-title-link"><div class="inventory_item_name " data-test="inventory-item-name">Sauce Labs Bike Light</div></a><div class="inventory_item_desc" data-test="inventory-item-desc">A red light isn't the desired state in testing but it sure helps when riding your bike at night. Water-resistant with 3 lighting modes, 1 AAA battery included.</div></div><div class="pricebar"><div class="inventory_item_price" data-test="inventory-item-price">$9.99</div><button class="btn btn_primary btn_small btn_inventory " data-test="add-to-cart-sauce-labs-bike-light" id="add-to-cart-sauce-labs-bike-light" name="add-to-cart-sauce-labs-bike-light">Add to cart</button></div></div></div>
     ADD_TO_CART_BTN = ".inventory_item button" #Same as INVENTORY_ITEMS
+    INVENTORY_PRICES = ".inventory_item_price" #Same as INVENTORY_ITEMS
+    INVENTORY_NAMES = ".inventory_item_name" #Same as INVENTORY_ITEMS
     CART_LINK = ".shopping_cart_link" #<a class="shopping_cart_link" data-test="shopping-cart-link"></a>
     CART_BADGE = ".shopping_cart_badge" #<span class="shopping_cart_badge" data-test="shopping-cart-badge">2</span>
     MENU_BTN = "#react-burger-menu-btn" #<button type="button" id="react-burger-menu-btn" >Open Menu</button>
     LOGOUT_MENU = "#logout_sidebar_link" #<a id="logout_sidebar_link" class="bm-item menu-item" href="#" data-test="logout-sidebar-link" style="display: block;">Logout</a>
+    SELECT_SORT = ".product_sort_container" #<select class="product_sort_container" data-test="product-sort-container"><option value="az">Name (A to Z)</option><option value="za">Name (Z to A)</option><option value="lohi">Price (low to high)</option><option value="hilo">Price (high to low)</option></select>
+    PRICE_LOW_HIGH = "lohi" #Same as .product_sort_container
+    PRICE_HIGH_LOW = "hilo" #Same as .product_sort_container
+    NAME_A_TO_Z = "az"
+    NAME_Z_TO_A = "za"
 
     #Checks if there are products on the page (returns True if there is at least one product on the page, otherwise False):
     def has_products(self) -> bool:
@@ -36,3 +43,45 @@ class ProductsPage(BasePage): #ProductsPage inherits from BasePage (can use all 
         self.click(self.LOGOUT_MENU)
         self.page.wait_for_url("https://www.saucedemo.com/")
         return LoginPage(self.page)
+    
+    #Selects the “Price (low to high)” option from the products sort dropdown. This triggers the UI to reorder the products so that the cheapest items appear first.
+    def select_price_low_high_sort(self):
+        self.page.locator(self.SELECT_SORT).select_option(self.PRICE_LOW_HIGH)
+    
+    #Selects the “Price (high to low)” option from the products sort dropdown. This reorders the products so that the most expensive items appear first.
+    def select_price_high_low_sort(self):
+        self.page.locator(self.SELECT_SORT).select_option(self.PRICE_HIGH_LOW)
+
+    #Retrieves the names of all products displayed on the inventory page. Returns them as a list of strings in the same order they appear in the UI.
+    def get_inventory_names(self) -> list[str]:
+        return self.page.locator(self.INVENTORY_NAMES).all_inner_texts()
+    
+    #Selects the “Name (A to Z)” option from the sort dropdown. This sorts the products alphabetically from A to Z.
+    def select_name_a_to_z_sort(self):
+        self.page.locator(self.SELECT_SORT).select_option(self.NAME_A_TO_Z)
+    
+    #Selects the “Name (Z to A)” option from the sort dropdown. This sorts the products alphabetically in reverse order.
+    def select_name_z_to_a_sort(self):
+        self.page.locator(self.SELECT_SORT).select_option(self.NAME_Z_TO_A)
+
+    #Retrieves all product prices from the inventory page, removes the dollar sign, and converts them into a list of floating-point numbers. The order of the list matches the order shown in the UI.
+    def get_inventory_prices(self) -> list[float]:
+        prices = self.page.locator(self.INVENTORY_PRICES).all_inner_texts()
+        return [float(price.replace("$", "")) for price in prices]
+
+    #Verifies whether a list is sorted correctly. If the list is not sorted as expected, the assertion clearly shows the current and expected order.
+    def assert_list_sorted(self, values: list, *, reverse: bool = False, description: str = "values"):
+        expected = sorted(values, reverse=reverse)
+        assert values == expected, (f"❌ {description} are not in the correct order.\n"
+            f"Current:   {values}\n"
+            f"Expected: {expected}")
+
+    #Validates that product prices are sorted correctly. This method combines data retrieval and validation into a single, readable check. "low_to_high=True" → prices should be in ascending order /// "low_to_high=False" → prices should be in descending order.
+    def assert_prices_sorted(self, *, low_to_high: bool = True):
+        prices = self.get_inventory_prices()
+        self.assert_list_sorted(prices, reverse=not low_to_high, description="Prices")
+
+    #Validates that product names are sorted alphabetically. "to_z=True" → alphabetical order (A–Z) /// "a_to_z=False" → reverse alphabetical order (Z–A)
+    def assert_names_sorted(self, *, a_to_z: bool = True):
+        names = self.get_inventory_names()
+        self.assert_list_sorted(names, reverse=not a_to_z, description="Names")

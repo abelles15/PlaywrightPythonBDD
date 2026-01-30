@@ -244,6 +244,28 @@ def logout_system(products_page):
 def see_products(products_page):
     assert products_page.has_products()
 
+@then("order the products by price low to high")
+def order_product_price_low_high(products_page):
+    products_page.select_price_low_high_sort()
+    products_page.page.wait_for_timeout(500)
+    products_page.assert_prices_sorted(low_to_high=True)
+
+@then("order the products by price high to low")
+def order_product_price_low_high(products_page):
+    products_page.select_price_high_low_sort()
+    products_page.page.wait_for_timeout(500)
+    products_page.assert_prices_sorted(low_to_high=False)
+
+@then("order the products by name A to Z")
+def order_products_name_a_to_z(products_page):
+    products_page.select_name_a_to_z_sort()
+    products_page.assert_names_sorted(a_to_z=True)
+
+@then("order the products by name Z to A")
+def order_products_name_z_to_a(products_page):
+    products_page.select_name_z_to_a_sort()
+    products_page.assert_names_sorted(a_to_z=False)
+
 @then("el carrito debe tener 1 producto")
 def verify_cart(products_page):
     assert products_page.cart_badge_count() == 1
