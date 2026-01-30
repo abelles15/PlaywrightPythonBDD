@@ -1,5 +1,5 @@
 import pytest #Python testing framework
-from pytest_bdd import given, when, then, parsers #Pytest extension for BDD (Behavior Driven Development) using Given/When/Then
+from pytest_bdd import given, when, then, parsers # pyright: ignore[reportMissingImports]
 from playwright.sync_api import sync_playwright #Playwright library for browser automation. sync_playwright allows using Playwright without async/await
 import allure #For test reports with screenshots and attachments
 from pathlib import Path #Cleaner handling of file paths
@@ -46,9 +46,9 @@ def browser(playwright_instance, request):
     browser.close()
 
 """Browser context and page fixtures:
-context: Creates a browser context (like a new browser profile with separate cookies/storage).
-page: Creates a new tab inside the context.
-request.node._page = page: Stores a reference to the page for screenshots.
+context --> Creates a browser context (like a new browser profile with separate cookies/storage).
+page --> Creates a new tab inside the context.
+request.node._page = page --> Stores a reference to the page for screenshots.
 Closes the page after the test finishes."""
 @pytest.fixture
 def context(browser):
@@ -234,6 +234,11 @@ def error_login_message(login_page, message): #login_page is the LoginPage insta
 def error_button_login(login_page):
     login_page.login_error_button()
     assert not login_page.page.locator(LoginPage.ERROR_BTN).is_visible()
+
+@then("logout the system")
+def logout_system(products_page):
+    login_page = products_page.logout()
+    assert login_page.page.url == "https://www.saucedemo.com/"
 
 @then("should be able to see the products list")
 def see_products(products_page):
